@@ -17,16 +17,25 @@ pipeline {
                 cleanWs()
             }
         }
-        stage ("Git checkout") {
+        stage("Git Checkout") {
             steps {
-                git branch: 'main', url: 'https://github.com/monk8081/starbucks.git'
+                retry(3) {
+                    git branch: 'main', url: 'https://github.com/monk8081/starbucks.git'
+                }
             }
         }
-        stage("Sonarqube Analysis "){
-            steps{
+     
+        stage("SonarQube Analysis") {
+            steps {
                 withSonarQubeEnv('sonar-server') {
-                    sh ''' $SCANNER_HOME/bin/sonar-scanner -Dsonar.projectName=starbucks \
-                    -Dsonar.projectKey=starbucks '''
+                    sh ''' $SCANNER_HOME/bin/sonar-scanner \
+                    -Dsonar.projectName=starbucks \
+                    -Dsonar.projectKey=starbucks \
+                    -Dsonar.sources=./src \
+                    -Dsonar.tests=./tests \
+                    -Dsonar.test.inclusions=**/*Test.js \
+                    -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
+                    '''
                 }
             }
         }
